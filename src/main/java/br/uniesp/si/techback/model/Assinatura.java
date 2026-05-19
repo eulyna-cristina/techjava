@@ -24,4 +24,10 @@ public class Assinatura {
     private LocalDate dataInicio;
     private LocalDate dataFim;
     private Boolean ativo;
+
+    @ManyToOne
+    @JoinColumn(name = "metodo_pagamento_id")
+    private MetodoPagamento metodoPagamento;
+
 }
+
