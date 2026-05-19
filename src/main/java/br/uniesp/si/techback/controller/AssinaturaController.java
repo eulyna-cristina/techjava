@@ -19,18 +19,21 @@ public class AssinaturaController {
 
     private final AssinaturaService assinaturaService;
 
-    // Endpoint para criar a assinatura vinculando Usuário e Plano
-    @PostMapping("/usuario/{usuarioId}/plano/{planoId}")
+    // ATUALIZADO: Agora recebe o pagamento na URL para bater com as regras do Service
+    @PostMapping("/usuario/{usuarioId}/plano/{planoId}/pagamento/{metodoPagamentoId}")
     public ResponseEntity<Assinatura> criar(
             @PathVariable UUID usuarioId,
-            @PathVariable UUID planoId) {
+            @PathVariable UUID planoId,
+            @PathVariable UUID metodoPagamentoId) { // <-- Adicionado aqui
 
-        log.info("Criando assinatura para o usuário {} no plano {}", usuarioId, planoId);
-        Assinatura salva = assinaturaService.criarAssinatura(usuarioId, planoId);
+        log.info("Criando assinatura para o usuário {} no plano {} com o pagamento {}", usuarioId, planoId, metodoPagamentoId);
+
+        // Agora os 3 parâmetros combinam perfeitamente com o Service!
+        Assinatura salva = assinaturaService.criarAssinatura(usuarioId, planoId, metodoPagamentoId);
         return ResponseEntity.status(HttpStatus.CREATED).body(salva);
     }
 
-    // Listar todas as assinaturas do sistema (útil para o Funcionário/Admin ver)
+    // Listando todas as assinaturas do sistema
     @GetMapping
     public ResponseEntity<List<Assinatura>> listarTodas() {
         return ResponseEntity.ok(assinaturaService.listarTodas());
@@ -47,7 +50,7 @@ public class AssinaturaController {
         }
     }
 
-    // Cancelar uma assinatura
+
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelar(@PathVariable UUID id) {
         log.info("Cancelando assinatura ID: {}", id);
