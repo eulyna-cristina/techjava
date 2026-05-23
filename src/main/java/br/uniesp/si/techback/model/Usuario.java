@@ -1,20 +1,17 @@
 package br.uniesp.si.techback.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import org.hibernate.validator.constraints.br.CPF;
-
+import lombok.*;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
-@Data
+@Getter
+@Setter
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@EqualsAndHashCode(of = "id")
 @Entity
 @Table(name = "usuarios")
 public class Usuario {
@@ -23,28 +20,44 @@ public class Usuario {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank(message = "Nome é obrigatório")
-    @Column(nullable = false)
-    private String nome;
+    @Column(name = "nome_completo", nullable = false, length = 150)
+    private String nomeCompleto;
 
-    @NotBlank(message = "Email é obrigatório")
-    @Email(message = "Email deve ser válido")
-    @Column(unique = true, nullable = false)
+    @Column(name = "data_nascimento", nullable = false)
+    private LocalDate dataNascimento;
+
+    @Column(nullable = false, unique = true, length = 254)
     private String email;
 
-    @NotBlank(message = "Senha é obrigatória")
-    private String senha;
+    @Column(name = "senha_hash", nullable = false, length = 60)
+    private String senhaHash;
 
-    @NotBlank(message = "CPF/CNPJ é obrigatório")
-    @Column(unique = true, nullable = false)
+    @Column(name = "cpf_cnpj", unique = true, length = 14)
     private String cpfCnpj;
 
-    // Aqui definimos se é ADMIN ou USER comum
-    @Column(nullable = false)
-    private String perfil;
+    @Column(nullable = false, length = 20)
+    private String perfil; // ADMIN | USER
 
-    // Relacionamento com Plano (Um usuário tem um plano)
+    @Column(name = "criado_em", nullable = false, updatable = false)
+    private LocalDateTime criadoEm;
+
+    @Column(name = "atualizado_em", nullable = false)
+    private LocalDateTime updatedEm;
+
+    // Relacionamento opcional mantido para o seu endpoint de vincular plano
     @ManyToOne
     @JoinColumn(name = "plano_id")
     private Plano plano;
+
+    // Atualiza as datas de criação e modificação automaticamente
+    @PrePersist
+    protected void onCreate() {
+        criadoEm = LocalDateTime.now();
+        updatedEm = LocalDateTime.now();
+    }
+
+    @PreUpdate
+    protected void onUpdate() {
+        updatedEm = LocalDateTime.now();
+    }
 }

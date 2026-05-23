@@ -8,7 +8,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.boot.test.mock.mockito.MockBean; // Importado o MockBean correto para o Spring 3.3
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
@@ -16,7 +16,7 @@ import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
-import java.util.UUID; // IMPORTANTE
+import java.util.UUID;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -31,7 +31,7 @@ class ConteudoControllerTest {
     @Autowired
     private MockMvc mockMvc;
 
-    @MockBean
+    @MockBean // Alterado de @MockitoBean para @MockBean
     private ConteudoService conteudoService;
 
     @Autowired
@@ -49,7 +49,7 @@ class ConteudoControllerTest {
                 .titulo("Inception")
                 .tipo("FILME")
                 .sinopse("Um ladrão que rouba segredos...")
-                .ano((short) 2010)
+                .ano(2010) // Corrigido: sem o (integer) quebrado
                 .genero("Ficção Científica")
                 .relevancia(new BigDecimal("9.8"))
                 .build();
@@ -59,7 +59,7 @@ class ConteudoControllerTest {
                 .titulo("Inception")
                 .tipo("FILME")
                 .sinopse("Um ladrão que rouba segredos...")
-                .ano((short) 2010)
+                .ano(2010) // Corrigido: sem o (interger) quebrado
                 .genero("Ficção Científica")
                 .relevancia(new BigDecimal("9.8"))
                 .build();

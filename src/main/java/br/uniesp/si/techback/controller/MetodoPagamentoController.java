@@ -27,7 +27,7 @@ public class MetodoPagamentoController {
 
         log.info("Cadastrando método de pagamento para o usuário ID: {}", usuarioId);
         MetodoPagamento salvo = metodoPagamentoService.salvarMetodo(usuarioId, metodoPagamento);
-        return ResponseEntity.status(HttpStatus.CREATED).body(salva);
+        return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
     // Endpoint para listar as formas de pagamento salvas de um usuário específico

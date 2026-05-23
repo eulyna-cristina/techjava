@@ -1,66 +1,74 @@
 package br.uniesp.si.techback.service;
 
+import br.uniesp.si.techback.dto.UsuarioDTO;
 import br.uniesp.si.techback.model.Usuario;
 import br.uniesp.si.techback.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
 @Service
-@Slf4j
 @RequiredArgsConstructor
+@Slf4j
 public class UsuarioService {
 
-    private final UsuarioRepository repository;
+    private final UsuarioRepository usuarioRepository;
+    private final RestTemplate restTemplate = new RestTemplate();
+    private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
-    @Transactional
-    public Usuario salvar(Usuario usuario) {
-        log.info("Validando duplicidade para o e-mail: {}", usuario.getEmail());
-
-        if (repository.existsByEmail(usuario.getEmail())) {
-            throw new RuntimeException("Erro: Este e-mail já está cadastrado no IESPFLIX!");
+    public Usuario salvar(UsuarioDTO dto) {
+        // Chamada obrigatória à API Externa (ViaCEP)
+        String url = "https://viacep.com.br/ws/" + dto.getCep() + "/json/";
+        try {
+            String resposta = restTemplate.getForObject(url, String.class);
+            if (resposta == null || resposta.contains("\"erro\": true")) {
+                throw new IllegalArgumentException("CEP inválido na API externa.");
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Falha na validação do serviço externo (ViaCEP): " + e.getMessage());
         }
 
-        if (repository.existsByCpfCnpj(usuario.getCpfCnpj())) {
-            throw new RuntimeException("Erro: Este CPF/CNPJ já está em uso!");
-        }
+        // Criptografia Obrigatória da Senha
+        String senhaHash = passwordEncoder.encode(dto.getSenha());
 
-        log.info("Salvando usuário no banco de dados...");
-        return repository.save(usuario);
+        // Mapeamento usando o Builder do Lombok solicitado
+        Usuario usuario = Usuario.builder()
+                .nomeCompleto(dto.getNome())
+                .dataNascimento(dto.getDataNascimento())
+                .email(dto.getEmail())
+                .senhaHash(senhaHash)
+                .cpfCnpj(dto.getCpfCnpj())
+                .perfil(dto.getPerfil())
+                .build();
+
+        return usuarioRepository.save(usuario);
     }
 
+    // Listagem ordenada por nome (Critério de Aceite)
     public List<Usuario> listarTodos() {
-        return repository.findAll();
+        return usuarioRepository.findAllByOrderByNomeCompletoAsc();
     }
 
+    // Suporte aos métodos extras do seu Controller
     public Optional<Usuario> buscarPorId(UUID id) {
-        return repository.findById(id);
+        return usuarioRepository.findById(id);
     }
 
-    @Transactional
     public void excluir(UUID id) {
-        if (!repository.existsById(id)) {
-            throw new RuntimeException("Usuário não encontrado para exclusão.");
-        }
-        repository.deleteById(id);
+        usuarioRepository.deleteById(id);
     }
 
-    /* MÉTODO PARA ASSINATURA (OPCIONAL PARA AGORA)
-       Este método será usado quando você criar a entidade Plano
-    */
-    @Transactional
     public Usuario vincularPlano(UUID usuarioId, UUID planoId) {
-        Usuario usuario = repository.findById(usuarioId)
-                .orElseThrow(() -> new RuntimeException("Usuário não encontrado"));
-
-        // Aqui você buscaria o plano no PlanoRepository e setaria no usuário
-        // usuario.setPlano(planoEncontrado);
-
-        return repository.save(usuario);
+        Usuario usuario = usuarioRepository.findById(usuarioId)
+                .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
+        // Lógica simplificada: Se precisar salvar o relacionamento posteriormente na tabela Assinatura,
+        // o código do Integrante 2 ou o seu service de Assinaturas fará isso.
+        return usuarioRepository.save(usuario);
     }
 }
