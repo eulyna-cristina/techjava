@@ -1,7 +1,8 @@
 package br.uniesp.si.techback.controller;
 
-import br.uniesp.si.techback.model.MetodoPagamento;
-import br.uniesp.si.techback.service.MetodoPagamentoService; // Você precisará criar esse service se ainda não existir
+import br.uniesp.si.techback.dto.MetodoPagamentoDTO;
+import br.uniesp.si.techback.service.MetodoPagamentoService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -19,22 +20,20 @@ public class MetodoPagamentoController {
 
     private final MetodoPagamentoService metodoPagamentoService;
 
-    // Endpoint para cadastrar um novo método de pagamento tokenizado para o usuário
     @PostMapping("/usuario/{usuarioId}")
-    public ResponseEntity<MetodoPagamento> cadastrar(
+    public ResponseEntity<MetodoPagamentoDTO> cadastrar(
             @PathVariable UUID usuarioId,
-            @RequestBody MetodoPagamento metodoPagamento) {
+            @Valid @RequestBody MetodoPagamentoDTO dto) { // Adicionado @Valid e alterado para DTO
 
-        log.info("Cadastrando método de pagamento para o usuário ID: {}", usuarioId);
-        MetodoPagamento salvo = metodoPagamentoService.salvarMetodo(usuarioId, metodoPagamento);
+        log.info("Requisição para cadastrar método de pagamento para o usuário ID: {}", usuarioId);
+        MetodoPagamentoDTO salvo = metodoPagamentoService.salvarMetodo(usuarioId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
 
-    // Endpoint para listar as formas de pagamento salvas de um usuário específico
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<MetodoPagamento>> listarPorUsuario(@PathVariable UUID usuarioId) {
-        log.info("Buscando métodos de pagamento do usuário ID: {}", usuarioId);
-        List<MetodoPagamento> lista = metodoPagamentoService.listarPorUsuario(usuarioId);
+    public ResponseEntity<List<MetodoPagamentoDTO>> listarPorUsuario(@PathVariable UUID usuarioId) {
+        log.info("Requisição para listar métodos de pagamento do usuário ID: {}", usuarioId);
+        List<MetodoPagamentoDTO> lista = metodoPagamentoService.listarPorUsuario(usuarioId);
         return ResponseEntity.ok(lista);
     }
 }

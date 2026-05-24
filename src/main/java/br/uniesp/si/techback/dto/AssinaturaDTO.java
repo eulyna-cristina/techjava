@@ -1,9 +1,8 @@
 package br.uniesp.si.techback.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import br.uniesp.si.techback.validation.ValidPeriodo;
+import jakarta.validation.constraints.NotNull;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -12,15 +11,24 @@ import java.util.UUID;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
+@ValidPeriodo // Nosso validador customizado de período cronológico!
 public class AssinaturaDTO {
 
     private UUID id;
 
-    // Passamos apenas o ID do usuário e do plano no DTO para simplificar o JSON
+    @NotNull(message = "O ID do usuário é obrigatório")
     private UUID usuarioId;
+
+    @NotNull(message = "O ID do plano é obrigatório")
     private UUID planoId;
 
+    private UUID metodoPagamentoId;
+
+    @NotNull(message = "A data de início é obrigatória")
     private LocalDate dataInicio;
+
+    @NotNull(message = "A data de fim é obrigatória")
     private LocalDate dataFim;
+
     private Boolean ativo;
 }

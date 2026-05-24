@@ -7,27 +7,31 @@ import java.util.UUID;
 
 @Entity
 @Data
+@Table(name = "assinaturas")
 public class Assinatura {
 
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @OneToOne // Um usuário tem uma assinatura ativa
-    @JoinColumn(name = "usuario_id")
+    @OneToOne
+    @JoinColumn(name = "usuario_id", nullable = false)
     private Usuario usuario;
 
-    @ManyToOne // Muitos usuários podem ter o mesmo tipo de plano (Ex: Premium)
-    @JoinColumn(name = "plano_id")
+    @ManyToOne
+    @JoinColumn(name = "plano_id", nullable = false)
     private Plano plano;
 
-    private LocalDate dataInicio;
-    private LocalDate dataFim;
-    private Boolean ativo;
-
     @ManyToOne
-    @JoinColumn(name = "metodo_pagamento_id")
+    @JoinColumn(name = "metodo_pagamento_id", nullable = false)
     private MetodoPagamento metodoPagamento;
 
-}
+    @Column(nullable = false)
+    private LocalDate dataInicio;
 
+    @Column(nullable = false)
+    private LocalDate dataFim;
+
+    @Column(nullable = false)
+    private Boolean ativo;
+}

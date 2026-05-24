@@ -1,5 +1,6 @@
 package br.uniesp.si.techback.service;
 
+import br.uniesp.si.techback.dto.MetodoPagamentoDTO;
 import br.uniesp.si.techback.model.MetodoPagamento;
 import br.uniesp.si.techback.model.Usuario;
 import br.uniesp.si.techback.repository.MetodoPagamentoRepository;
@@ -11,6 +12,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -21,29 +23,51 @@ public class MetodoPagamentoService {
     private final UsuarioRepository usuarioRepository;
 
     @Transactional
-    public MetodoPagamento salvarMetodo(UUID usuarioId, MetodoPagamento metodoPagamento) {
+    public MetodoPagamentoDTO salvarMetodo(UUID usuarioId, MetodoPagamentoDTO dto) {
         log.info("Salvando novo método de pagamento para o usuário ID: {}", usuarioId);
 
-        // 1. Busca o usuário dono do cartão no banco
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + usuarioId));
 
-        metodoPagamento.setUsuario(usuario);
+        // Convertendo DTO para Entidade
+        MetodoPagamento entidade = new MetodoPagamento();
+        entidade.setUsuario(usuario);
+        entidade.setTipo(dto.getTipo().toUpperCase());
+        entidade.setUltimosDigitos(dto.getUltimosDigitos());
+        entidade.setPreferencial(dto.getPreferencial() != null ? dto.getPreferencial() : false);
 
-        // 2. Regra de Negócio / Simulação exigida no checklist:
-        // Se o Front-end não enviar um token pronto, nós geramos um hash seguro fictício aqui no Back-end
-        if (metodoPagamento.getTokenPagamento() == null || metodoPagamento.getTokenPagamento().isEmpty()) {
+        // Regra do Token do Checklist
+        if (dto.getTokenPagamento() == null || dto.getTokenPagamento().isEmpty()) {
             String tokenFicticio = "tok_iespflix_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 12);
-            metodoPagamento.setTokenPagamento(tokenFicticio);
-            log.info("Token de pagamento gerado com sucesso: {}", tokenFicticio);
+            entidade.setTokenPagamento(tokenFicticio);
+        } else {
+            entidade.setTokenPagamento(dto.getTokenPagamento());
         }
 
-        return metodoPagamentoRepository.save(metodoPagamento);
+        MetodoPagamento salvo = metodoPagamentoRepository.save(entidade);
+        return convertToDTO(salvo);
     }
 
-    public List<MetodoPagamento> listarPorUsuario(UUID usuarioId) {
-        log.info("Buscando todos os métodos de pagamento do usuário ID: {}", usuarioId);
-        // Retorna a lista geral para a exibição no catálogo do Front-end
-        return metodoPagamentoRepository.findAll();
+    @Transactional(readOnly = true)
+    public List<MetodoPagamentoDTO> listarPorUsuario(UUID usuarioId) {
+        log.info("Buscando métodos de pagamento do usuário ID: {}", usuarioId);
+
+        // Chamando a JPQL customizada corrigida (Não traz mais o banco todo!)
+        return metodoPagamentoRepository.buscarMetodosPorUsuarioId(usuarioId)
+                .stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList());
+    }
+
+    // Helper simples para mapeamento (Você pode usar MapStruct se preferir)
+    private MetodoPagamentoDTO convertToDTO(MetodoPagamento entidade) {
+        return MetodoPagamentoDTO.builder()
+                .id(entidade.getId())
+                .usuarioId(entidade.getUsuario().getId())
+                .tipo(entidade.getTipo())
+                .tokenPagamento(entidade.getTokenPagamento())
+                .ultimosDigitos(entidade.getUltimosDigitos())
+                .preferencial(entidade.getPreferencial())
+                .build();
     }
 }

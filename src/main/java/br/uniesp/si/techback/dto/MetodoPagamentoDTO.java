@@ -1,9 +1,9 @@
 package br.uniesp.si.techback.dto;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import br.uniesp.si.techback.validation.ValidTipoPagamento;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
+import lombok.*;
 
 import java.util.UUID;
 
@@ -14,17 +14,15 @@ import java.util.UUID;
 public class MetodoPagamentoDTO {
 
     private UUID id;
-
-    // ID do usuário dono desse método de pagamento
     private UUID usuarioId;
 
-    // Ex: "CARTAO_CREDITO" ou "PIX"
+    @NotBlank(message = "O tipo de pagamento é obrigatório")
+    @ValidTipoPagamento // Nosso validador customizado!
     private String tipo;
 
-    // O token fictício exigido pela especificação (Ex: "tok_iespflix_12345")
     private String tokenPagamento;
 
-    // Apenas os 4 últimos dígitos para o Front exibir com segurança (Ex: "4321")
+    @Size(min = 4, max = 4, message = "Os últimos dígitos devem conter exatamente 4 caracteres")
     private String ultimosDigitos;
 
     private Boolean preferencial;

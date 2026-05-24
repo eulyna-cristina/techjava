@@ -1,7 +1,6 @@
 package br.uniesp.si.techback.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -22,8 +21,7 @@ public class Plano {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID id;
 
-    @NotBlank(message = "Nome é obrigatório")
-    @Column(nullable = false)
+    @Column(nullable = false, unique = true)
     private String nome;
 
     @Column
@@ -32,4 +30,3 @@ public class Plano {
     @Column(nullable = false)
     private BigDecimal preco;
 }
-
