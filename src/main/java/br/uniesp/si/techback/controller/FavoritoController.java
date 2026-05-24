@@ -1,6 +1,6 @@
 package br.uniesp.si.techback.controller;
 
-import br.uniesp.si.techback.model.Favorito;
+import br.uniesp.si.techback.dto.FavoritoDTO;
 import br.uniesp.si.techback.service.FavoritoService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,25 +20,31 @@ public class FavoritoController {
 
     // Endpoint para favoritar: POST /favoritos/usuario/{uId}/conteudo/{cId}
     @PostMapping("/usuario/{usuarioId}/conteudo/{conteudoId}")
-    public ResponseEntity<Favorito> adicionarFavorito(
+    public ResponseEntity<FavoritoDTO> adicionarFavorito(
             @PathVariable UUID usuarioId,
             @PathVariable UUID conteudoId) {
 
         log.info("Usuário {} favoritando conteúdo {}", usuarioId, conteudoId);
-        Favorito salvo = favoritoService.salvar(usuarioId, conteudoId);
+        FavoritoDTO salvo = favoritoService.salvar(usuarioId, conteudoId);
         return ResponseEntity.ok(salvo);
     }
 
-    // Lista todos os favoritos de um usuário específico
+    // Lista todos os favoritos de um usuário específico (Ordenados por data desc conforme especificação)
     @GetMapping("/usuario/{usuarioId}")
-    public ResponseEntity<List<Favorito>> listarPorUsuario(@PathVariable UUID usuarioId) {
-        return ResponseEntity.ok(favoritoService.listarPorPreferencia(usuarioId));
+    public ResponseEntity<List<FavoritoDTO>> listarPorUsuario(@PathVariable UUID usuarioId) {
+        log.info("Listando favoritos do usuário {}", usuarioId);
+        List<FavoritoDTO> favoritos = favoritoService.listarPorPreferencia(usuarioId);
+        return ResponseEntity.ok(favoritos);
     }
 
-    // Remove um favorito
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> removerFavorito(@PathVariable UUID id) {
-        favoritoService.excluir(id);
+    // Remove um favorito usando a PK composta da especificação
+    @DeleteMapping("/usuario/{usuarioId}/conteudo/{conteudoId}")
+    public ResponseEntity<Void> removerFavorito(
+            @PathVariable UUID usuarioId,
+            @PathVariable UUID conteudoId) {
+
+        log.info("Usuário {} removendo conteúdo {} dos favoritos", usuarioId, conteudoId);
+        favoritoService.excluir(usuarioId, conteudoId);
         return ResponseEntity.noContent().build();
     }
 }

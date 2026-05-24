@@ -8,7 +8,7 @@
 		<version>3.3.0</version>
 		<relativePath/> </parent>
 	<groupId>br.uniesp.si</groupId>
-	<artifactId>techback</artifactId>
+	<artifactId>techjava</artifactId>
 	<version>1.0.0-17032026</version>
 	<name>techback</name>
 	<description>Backend 1 Uniesp</description>

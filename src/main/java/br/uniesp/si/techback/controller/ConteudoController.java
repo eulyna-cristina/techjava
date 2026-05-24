@@ -1,7 +1,6 @@
 package br.uniesp.si.techback.controller;
 
 import br.uniesp.si.techback.dto.ConteudoDTO;
-import br.uniesp.si.techback.model.Conteudo;
 import br.uniesp.si.techback.service.ConteudoService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -12,10 +11,10 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 import java.net.URI;
 import java.util.List;
-import java.util.UUID; // IMPORTANTE: Usar UUID conforme a especificação
+import java.util.UUID;
 
 @RestController
-@RequestMapping("/conteudos") // Alterado de /filmes para /conteudos (mais genérico)
+@RequestMapping("/conteudos")
 @RequiredArgsConstructor
 @Slf4j
 public class ConteudoController {
@@ -23,19 +22,25 @@ public class ConteudoController {
     private final ConteudoService conteudoService;
 
     @GetMapping("/ordenado")
-    public List<Conteudo> listarOrdenado() {
+    public ResponseEntity<List<ConteudoDTO>> listarOrdenado() {
         log.info("Listando conteúdos ordenados por título");
-        return conteudoService.listarOrdenado();
+        List<ConteudoDTO> lista = conteudoService.listarOrdenado();
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping
-    public List<ConteudoDTO> listar() {
-        log.info("Listando todos os conteúdos (Filmes e Séries)");
-        return conteudoService.listar();
+    public ResponseEntity<List<ConteudoDTO>> listar(
+            @RequestParam(required = false) String termo,
+            @RequestParam(required = false) String tipo,
+            @RequestParam(required = false) String genero) {
+
+        log.info("Buscando todos os conteúdos com filtros - Termo: {}, Tipo: {}, Gênero: {}", termo, tipo, genero);
+        List<ConteudoDTO> lista = conteudoService.listarComFiltros(termo, tipo, genero);
+        return ResponseEntity.ok(lista);
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ConteudoDTO> buscarPorId(@PathVariable UUID id) { // Alterado para UUID
+    public ResponseEntity<ConteudoDTO> buscarPorId(@PathVariable UUID id) {
         try {
             ConteudoDTO dto = conteudoService.buscarPorId(id);
             return ResponseEntity.ok(dto);
@@ -69,17 +74,19 @@ public class ConteudoController {
             ConteudoDTO atualizado = conteudoService.atualizar(id, conteudoDTO);
             return ResponseEntity.ok(atualizado);
         } catch (Exception e) {
+            log.error("Erro ao atualizar conteúdo ID {}: {}", id, e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deletar(@PathVariable UUID id) { // Alterado para UUID
+    public ResponseEntity<Void> deletar(@PathVariable UUID id) {
         log.info("Excluindo conteúdo ID: {}", id);
         try {
             conteudoService.excluir(id);
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
+            log.error("Erro ao excluir conteúdo ID {}: {}", id, e.getMessage());
             return ResponseEntity.notFound().build();
         }
     }

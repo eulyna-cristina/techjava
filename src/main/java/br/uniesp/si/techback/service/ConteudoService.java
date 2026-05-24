@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
-import java.util.UUID; // IMPORTANTE: Importar o UUID
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -21,8 +21,21 @@ public class ConteudoService {
     private final ConteudoRepository conteudoRepository;
     private final ConteudoMapper conteudoMapper;
 
-    public List<Conteudo> listarOrdenado() {
-        return conteudoRepository.listarFilmesOrdenados();
+    // CORRIGIDO: Retornando DTO e usando o método atualizado do Repository
+    public List<ConteudoDTO> listarOrdenado() {
+        log.info("Buscando conteúdos ordenados por título");
+        return conteudoRepository.listarConteudosOrdenados().stream()
+                .map(conteudoMapper::toDTO)
+                .collect(Collectors.toList());
+    }
+
+    // NOVO: Método para processar a busca com filtros dinâmicos (JPQL)
+    public List<ConteudoDTO> listarComFiltros(String termo, String tipo, String genero) {
+        log.info("Filtrando conteúdos no service - Termo: {}, Tipo: {}, Gênero: {}", termo, tipo, genero);
+        List<Conteudo> listaFiltrada = conteudoRepository.buscarComFiltros(termo, tipo, genero);
+        return listaFiltrada.stream()
+                .map(conteudoMapper::toDTO)
+                .collect(Collectors.toList());
     }
 
     public List<ConteudoDTO> listar() {
@@ -38,7 +51,6 @@ public class ConteudoService {
         }
     }
 
-    // MUDANÇA AQUI: De Long para UUID
     public ConteudoDTO buscarPorId(UUID id) {
         log.info("Buscando conteúdo pelo ID: {}", id);
         Conteudo conteudo = conteudoRepository.findById(id)
@@ -51,7 +63,6 @@ public class ConteudoService {
     }
 
     @Transactional
-    // MUDANÇA AQUI: De Long para UUID
     public ConteudoDTO atualizar(UUID id, ConteudoDTO conteudoDTO) {
         log.info("Atualizando conteúdo ID: {}", id);
         return conteudoRepository.findById(id)
@@ -79,7 +90,6 @@ public class ConteudoService {
     }
 
     @Transactional
-    // MUDANÇA AQUI: De Long para UUID
     public void excluir(UUID id) {
         log.info("Excluindo conteúdo ID: {}", id);
         if (!conteudoRepository.existsById(id)) {

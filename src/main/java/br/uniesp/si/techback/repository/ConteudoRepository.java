@@ -13,15 +13,27 @@ import java.util.UUID;
 @Repository
 public interface ConteudoRepository extends JpaRepository<Conteudo, UUID> {
 
-    // Mudado Filme para Conteudo aqui
-    @Query("select c from Conteudo c order by c.titulo asc")
-    List<Conteudo> listarFilmesOrdenados();
+    // 1. JPQL Customizada com Filtros Dinâmicos (REQUISITO CENTRAL DO INTEGRANTE 2)
+    @Query("SELECT c FROM Conteudo c WHERE " +
+            "(:termo IS NULL OR LOWER(c.titulo) LIKE LOWER(CONCAT('%', :termo, '%')) OR LOWER(c.sinopse) LIKE LOWER(CONCAT('%', :termo, '%'))) AND " +
+            "(:tipo IS NULL OR c.tipo = :tipo) AND " +
+            "(:genero IS NULL OR LOWER(c.genero) = LOWER(:genero))")
+    List<Conteudo> buscarComFiltros(
+            @Param("termo") String termo,
+            @Param("tipo") String tipo,
+            @Param("genero") String genero);
 
+    // 2. Método JPQL para listagem ordenada (Ajustado o nome para Conteudos)
+    @Query("select c from Conteudo c order by c.titulo asc")
+    List<Conteudo> listarConteudosOrdenados();
+
+    // 3. Derived Query equivalente à de cima (Spring Data gera o SQL sozinho)
     List<Conteudo> findAllByOrderByTituloAsc();
 
+    // 4. Derived Query para busca exata por gênero e título
     Optional<Conteudo> findByGeneroAndTitulo(String genero, String titulo);
 
-    // Mudado Filme para Conteudo e ajustado o alias para 'c'
+    // 5. JPQL para busca exata (Ajustado retorno para Optional por segurança)
     @Query("select c from Conteudo c where c.genero = :genero and c.titulo = :titulo")
-    Conteudo buscarPorGeneroETitulo(@Param("genero") String gen, @Param("titulo") String tit);
+    Optional<Conteudo> buscarPorGeneroETitulo(@Param("genero") String gen, @Param("titulo") String tit);
 }
