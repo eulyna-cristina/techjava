@@ -27,10 +27,16 @@ public class UsuarioService {
         String url = "https://viacep.com.br/ws/" + dto.getCep() + "/json/";
         try {
             String resposta = restTemplate.getForObject(url, String.class);
-            if (resposta == null || resposta.contains("\"erro\": true")) {
-                throw new IllegalArgumentException("CEP inválido na API externa.");
+
+            // AJUSTE AQUI: Verifica se a API respondeu nula ou se contém o marcador de erro do ViaCEP
+            if (resposta == null || resposta.contains("\"erro\": true") || resposta.contains("\"erro\": \"true\"")) {
+                throw new IllegalArgumentException("CEP inválido ou inexistente na base do ViaCEP.");
             }
+        } catch (IllegalArgumentException e) {
+            // Repassa o erro do CEP inválido direto para o Controller sabotar o salvamento
+            throw e;
         } catch (Exception e) {
+            // Captura falhas de rede/comunicação com a API externa
             throw new RuntimeException("Falha na validação do serviço externo (ViaCEP): " + e.getMessage());
         }
 
