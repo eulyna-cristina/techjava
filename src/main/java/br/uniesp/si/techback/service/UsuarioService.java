@@ -1,6 +1,7 @@
 package br.uniesp.si.techback.service;
 
 import br.uniesp.si.techback.dto.UsuarioDTO;
+import br.uniesp.si.techback.dto.ViaCepResponseDTO;
 import br.uniesp.si.techback.model.Usuario;
 import br.uniesp.si.techback.repository.UsuarioRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,11 +26,14 @@ public class UsuarioService {
     public Usuario salvar(UsuarioDTO dto) {
         // Chamada obrigatória à API Externa (ViaCEP)
         String url = "https://viacep.com.br/ws/" + dto.getCep() + "/json/";
-        try {
-            String resposta = restTemplate.getForObject(url, String.class);
+        ViaCepResponseDTO viaCep = null;
 
-            // AJUSTE AQUI: Verifica se a API respondeu nula ou se contém o marcador de erro do ViaCEP
-            if (resposta == null || resposta.contains("\"erro\": true") || resposta.contains("\"erro\": \"true\"")) {
+        try {
+            // Mapeando a requisição externa direto no DTO criado
+            viaCep = restTemplate.getForObject(url, ViaCepResponseDTO.class);
+
+            // Validação interna do marcador de erro do ViaCEP
+            if (viaCep == null || Boolean.TRUE.equals(viaCep.getErro())) {
                 throw new IllegalArgumentException("CEP inválido ou inexistente na base do ViaCEP.");
             }
         } catch (IllegalArgumentException e) {
@@ -40,10 +44,10 @@ public class UsuarioService {
             throw new RuntimeException("Falha na validação do serviço externo (ViaCEP): " + e.getMessage());
         }
 
-        // Criptografia Obrigatória da Senha
+        // Criptografia Obrigatória da Senha com BCrypt
         String senhaHash = passwordEncoder.encode(dto.getSenha());
 
-        // Mapeamento usando o Builder do Lombok solicitado
+        // Mapeamento usando o Builder do Lombok (Salvando todos os campos retornados do ViaCEP)
         Usuario usuario = Usuario.builder()
                 .nomeCompleto(dto.getNome())
                 .dataNascimento(dto.getDataNascimento())
@@ -51,6 +55,11 @@ public class UsuarioService {
                 .senhaHash(senhaHash)
                 .cpfCnpj(dto.getCpfCnpj())
                 .perfil(dto.getPerfil())
+                .cep(viaCep.getCep())
+                .logradouro(viaCep.getLogradouro())
+                .bairro(viaCep.getBairro())
+                .localidade(viaCep.getLocalidade())
+                .uf(viaCep.getUf())
                 .build();
 
         return usuarioRepository.save(usuario);
@@ -73,8 +82,7 @@ public class UsuarioService {
     public Usuario vincularPlano(UUID usuarioId, UUID planoId) {
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new IllegalArgumentException("Usuário não encontrado."));
-        // Lógica simplificada: Se precisar salvar o relacionamento posteriormente na tabela Assinatura,
-        // o código do Integrante 2 ou o seu service de Assinaturas fará isso.
+        // Lógica mantida caso precise associar o plano diretamente
         return usuarioRepository.save(usuario);
     }
 }
