@@ -1,6 +1,7 @@
 package br.uniesp.si.techback.service;
 
 import br.uniesp.si.techback.dto.MetodoPagamentoDTO;
+import br.uniesp.si.techback.mapper.MetodoPagamentoMapper;
 import br.uniesp.si.techback.model.MetodoPagamento;
 import br.uniesp.si.techback.model.Usuario;
 import br.uniesp.si.techback.repository.MetodoPagamentoRepository;
@@ -24,50 +25,56 @@ public class MetodoPagamentoService {
 
     @Transactional
     public MetodoPagamentoDTO salvarMetodo(UUID usuarioId, MetodoPagamentoDTO dto) {
-        log.info("Salvando novo método de pagamento para o usuário ID: {}", usuarioId);
+        // Log de início exigido no Item 7 (Observabilidade)
+        log.info("[START] Salvando novo método de pagamento para o usuário ID: {}", usuarioId);
 
         Usuario usuario = usuarioRepository.findById(usuarioId)
                 .orElseThrow(() -> new RuntimeException("Usuário não encontrado com o ID: " + usuarioId));
 
-        // Convertendo DTO para Entidade
-        MetodoPagamento entidade = new MetodoPagamento();
+        // Utilizando o Mapper que criamos para gerar a entidade base
+        MetodoPagamento entidade = MetodoPagamentoMapper.paraEntidade(dto);
         entidade.setUsuario(usuario);
-        entidade.setTipo(dto.getTipo().toUpperCase());
-        entidade.setUltimosDigitos(dto.getUltimosDigitos());
-        entidade.setPreferencial(dto.getPreferencial() != null ? dto.getPreferencial() : false);
 
-        // Regra do Token do Checklist
-        if (dto.getTokenPagamento() == null || dto.getTokenPagamento().isEmpty()) {
-            String tokenFicticio = "tok_iespflix_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 12);
+        // Regra do "Somente Tokenizado" exigido no Item 4 e Item 2.6 (token_gateway)
+        if (dto.getTokenPagamento() == null || dto.getTokenPagamento().isBlank()) {
+            String tokenFicticio = "tok_gateway_" + UUID.randomUUID().toString().replaceAll("-", "").substring(0, 16);
             entidade.setTokenPagamento(tokenFicticio);
-        } else {
-            entidade.setTokenPagamento(dto.getTokenPagamento());
         }
 
         MetodoPagamento salvo = metodoPagamentoRepository.save(entidade);
-        return convertToDTO(salvo);
+
+        // Log de fim exigido no Item 7
+        log.info("[END] Método de pagamento salvo com sucesso. ID: {}", salvo.getId());
+
+        return MetodoPagamentoMapper.paraDTO(salvo);
     }
 
     @Transactional(readOnly = true)
     public List<MetodoPagamentoDTO> listarPorUsuario(UUID usuarioId) {
-        log.info("Buscando métodos de pagamento do usuário ID: {}", usuarioId);
+        log.info("[START] Buscando métodos de pagamento do usuário ID: {}", usuarioId);
 
-        // Chamando a JPQL customizada corrigida (Não traz mais o banco todo!)
-        return metodoPagamentoRepository.buscarMetodosPorUsuarioId(usuarioId)
+        if (!usuarioRepository.existsById(usuarioId)) {
+            throw new RuntimeException("Usuário não encontrado com o ID: " + usuarioId);
+        }
+
+        List<MetodoPagamentoDTO> resultados = metodoPagamentoRepository.buscarMetodosPorUsuarioId(usuarioId)
                 .stream()
-                .map(this::convertToDTO)
+                .map(MetodoPagamentoMapper::paraDTO) // Substituído pelo Mapper estático
                 .collect(Collectors.toList());
+
+        log.info("[END] Total de métodos de pagamento encontrados: {}", resultados.size());
+        return resultados;
     }
 
-    // Helper simples para mapeamento (Você pode usar MapStruct se preferir)
-    private MetodoPagamentoDTO convertToDTO(MetodoPagamento entidade) {
-        return MetodoPagamentoDTO.builder()
-                .id(entidade.getId())
-                .usuarioId(entidade.getUsuario().getId())
-                .tipo(entidade.getTipo())
-                .tokenPagamento(entidade.getTokenPagamento())
-                .ultimosDigitos(entidade.getUltimosDigitos())
-                .preferencial(entidade.getPreferencial())
-                .build();
+    @Transactional
+    public void remover(UUID id) {
+        log.info("[START] Removendo método de pagamento ID: {}", id);
+
+        if (!metodoPagamentoRepository.existsById(id)) {
+            throw new RuntimeException("Método de pagamento não encontrado");
+        }
+
+        metodoPagamentoRepository.deleteById(id);
+        log.info("[END] Método de pagamento removido com sucesso.");
     }
 }
