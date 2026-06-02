@@ -5,7 +5,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.cloud.openfeign.EnableFeignClients; // IMPORTANTE
 
 @SpringBootApplication
-@EnableFeignClients // ADICIONE ESTA ANOTAÇÃO AQUI
+@EnableFeignClients
 public class TechbackApplication {
 
 	public static void main(String[] args) {

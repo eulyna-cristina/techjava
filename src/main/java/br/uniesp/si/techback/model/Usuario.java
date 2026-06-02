@@ -38,18 +38,32 @@ public class Usuario {
     @Column(nullable = false, length = 20)
     private String perfil; // ADMIN | USER
 
+    // CAMPOS ADICIONADOS PARA A INTEGRAÇÃO DO VIACEP
+    @Column(length = 10)
+    private String cep;
+
+    @Column(length = 150)
+    private String logradouro;
+
+    @Column(length = 100)
+    private String bairro;
+
+    @Column(length = 100)
+    private String localidade;
+
+    @Column(length = 2)
+    private String uf;
+
     @Column(name = "criado_em", nullable = false, updatable = false)
     private LocalDateTime criadoEm;
 
     @Column(name = "atualizado_em", nullable = false)
     private LocalDateTime updatedEm;
 
-    // Relacionamento opcional mantido para o seu endpoint de vincular plano
     @ManyToOne
     @JoinColumn(name = "plano_id")
     private Plano plano;
 
-    // Atualiza as datas de criação e modificação automaticamente
     @PrePersist
     protected void onCreate() {
         criadoEm = LocalDateTime.now();
