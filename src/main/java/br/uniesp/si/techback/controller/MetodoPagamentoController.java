@@ -20,6 +20,9 @@ public class MetodoPagamentoController {
 
     private final MetodoPagamentoService metodoPagamentoService;
 
+//O endpoint para cadastrar um metodo de pagamento agora recebe o DTO completo, incluindo o tipo e os detalhes específicos.
+//  do metodo de pagamento. O serviço é responsável por validar e processar essas informações corretamente.
+
     @PostMapping("/usuario/{usuarioId}")
     public ResponseEntity<MetodoPagamentoDTO> cadastrar(
             @PathVariable UUID usuarioId,
@@ -29,6 +32,9 @@ public class MetodoPagamentoController {
         MetodoPagamentoDTO salvo = metodoPagamentoService.salvarMetodo(usuarioId, dto);
         return ResponseEntity.status(HttpStatus.CREATED).body(salvo);
     }
+
+// O endpoint para listar os métodos de pagamento de um usuário agora retorna uma lista de DTOs, permitindo que o
+// cliente obtenha todas as informações relevantes sobre cada metodo de pagamento associado ao usuário.
 
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<List<MetodoPagamentoDTO>> listarPorUsuario(@PathVariable UUID usuarioId) {

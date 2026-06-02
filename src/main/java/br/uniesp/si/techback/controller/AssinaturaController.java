@@ -30,10 +30,16 @@ public class AssinaturaController {
         return ResponseEntity.status(HttpStatus.CREATED).body(salva);
     }
 
+    // O endpoint para listar todas as assinaturas agora retorna uma lista de DTOs, permitindo que o cliente obtenha informações
+    // detalhadas sobre cada assinatura, incluindo o plano associado, o metodo de pagamento utilizado e o status da assinatura.
+
     @GetMapping
     public ResponseEntity<List<AssinaturaDTO>> listarTodas() {
         return ResponseEntity.ok(assinaturaService.listarTodas());
     }
+
+    // O endpoint para buscar a assinatura de um usuário específico agora retorna um DTO detalhado,
+    // permitindo que o cliente obtenha
 
     @GetMapping("/usuario/{usuarioId}")
     public ResponseEntity<AssinaturaDTO> buscarPorUsuario(@PathVariable UUID usuarioId) {
@@ -43,6 +49,9 @@ public class AssinaturaController {
             return ResponseEntity.notFound().build();
         }
     }
+
+    // O endpoint para cancelar uma assinatura agora é um DELETE, seguindo as convenções REST. Ele recebe o ID da assinatura a ser
+    // cancelada e, se a operação for bem-sucedida, retorna um status 204 No Content. Se a assinatura não for encontrada, retorna um status 404 Not Found.
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> cancelar(@PathVariable UUID id) {
