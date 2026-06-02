@@ -61,7 +61,7 @@ public class ConteudoController {
                     .buildAndExpand(salvo.getId())
                     .toUri();
             return ResponseEntity.created(location).body(salvo);
-        } catch (Exception e) {
+             } catch (Exception e) {
             log.error("Erro ao criar conteúdo: {}", e.getMessage());
             throw e;
         }

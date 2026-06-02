@@ -6,7 +6,7 @@ import java.util.Set;
 
 public class TipoPagamentoValidator implements ConstraintValidator<ValidTipoPagamento, String> {
 
-    private static final Set<String> TIPOS_VALIDOS = Set.of("CARTAO_CREDITO", "DEBITO", "PIX");
+    private static final Set<String> TIPOS_VALIDOS = Set.of("CREDITO", "DEBITO", "PIX");
 
     @Override
     public boolean isValid(String value, ConstraintValidatorContext context) {

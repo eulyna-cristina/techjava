@@ -32,8 +32,15 @@ public class Usuario {
     @Column(name = "senha_hash", nullable = false, length = 60)
     private String senhaHash;
 
-    @Column(name = "cpf_cnpj", unique = true, length = 14)
+    @Column(name = "cpf_cnpj", unique = true, length = 18)
     private String cpfCnpj;
+
+    @Column(length = 150)
+    private String razaoSocial;
+
+    @Column(length = 100)
+    private String nomeFantasia;
+
 
     @Column(nullable = false, length = 20)
     private String perfil; // ADMIN | USER

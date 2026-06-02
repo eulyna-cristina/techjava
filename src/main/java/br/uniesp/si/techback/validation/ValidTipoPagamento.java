@@ -9,7 +9,7 @@ import java.lang.annotation.*;
 @Constraint(validatedBy = TipoPagamentoValidator.class)
 @Documented
 public @interface ValidTipoPagamento {
-    String message() default "Tipo de pagamento inválido. Use: CARTAO_CREDITO, DEBITO ou PIX.";
+    String message() default "Tipo de pagamento inválido. Use: CREDITO, DEBITO ou PIX.";
     Class<?>[] groups() default {};
     Class<? extends Payload>[] payload() default {};
 }

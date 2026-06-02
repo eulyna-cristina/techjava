@@ -47,4 +47,6 @@ public class UsuarioDTO {
     private String cep;
 
     private String nomePlano;
+
+
 }
